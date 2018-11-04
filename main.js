@@ -97,6 +97,14 @@ Translation.addTranslation("Redo your last (undone) action. This command replays
 	ru:"Повторите последнее(отмененное) действие.",
 	en:"Redo your last (undone) action. This command replays back history and does not repeat the command.",
 });
+Translation.addTranslation("Clear your history.", {
+	ru:"Очистить истоию.",
+	en:"Clear your history.",
+});
+Translation.addTranslation("History cleared.", {
+	ru:"История очищена.",
+	en:"History cleared.",
+});
 //wand
 Translation.addTranslation("Gives you the \"EditWand\" (by default, a wooden axe).", {
 	ru:"Дает вам \"EditWand\" (по умолчанию - деревянный топор).",
@@ -127,6 +135,45 @@ Translation.addTranslation("The region is omitted in %area%", {
 	ru:"Регион опущен на %area%",
 	en:"The region is omitted in %area%",
 });
+//Copy/Paste
+Translation.addTranslation("Copy the selected area.", {
+	ru:"Скопировать выделенную область.",
+	en:"Copy the selected area.",
+});
+Translation.addTranslation("Region copied.", {
+	ru:"Регион скопрован.",
+	en:"Region copied.",
+});
+Translation.addTranslation("Paste the copied area.", {
+	ru:"Вставить скопированную область.",
+	en:"Paste the copied area.",
+});
+Translation.addTranslation("Cut the selected area.", {
+	ru:"Скопировать выделенную область.",
+	en:"Cut the selected area.",
+});
+Translation.addTranslation("Region cut.", {
+	ru:"Регион вырезан.",
+	en:"Region cut.",
+});
+//toggleeditwand
+Translation.addTranslation("Toggles the edit wand selection mode, allowing you to use the edit wand item normally.", {
+	ru:"Переключает режим выбора палочки редактирования, позволяя использовать элемент палочки редактирования в обычном режиме.",
+	en:"Toggles the edit wand selection mode, allowing you to use the edit wand item normally.",
+});
+Translation.addTranslation("Mode wand edit switched.", {
+	ru:"Режим палочки редактирования переключен.",
+	en:"Mode wand edit switched.",
+});
+//desel
+Translation.addTranslation("Deselects the current selection.", {
+	ru:"Отменяет текущее выделение.",
+	en:"Deselects the current selection.",
+});
+Translation.addTranslation("The current selection is canceled.", {
+	ru:"Текущее выделение отмененно.",
+	en:"The current selection is canceled.",
+});
 
 
 
@@ -134,6 +181,8 @@ Translation.addTranslation("The region is omitted in %area%", {
 // file: main.js
 
 var WorldEdit = {
+	wand:true,
+	
 	pos1:{x:Infinity,y:Infinity,z:Infinity},
 	pos2:{x:Infinity,y:Infinity,z:Infinity},
 	
@@ -143,7 +192,11 @@ var WorldEdit = {
 	undo:[],
 	redo:[],
 	
+	copy:[],
+	
 	getSizeArea:function(){
+		if(!WorldEdit.getValidPosition())return 1;
+		
 		var x = this.pos2.x - this.pos1.x +1;
 		var y = this.pos2.y - this.pos1.y +1;
 		var z = this.pos2.z - this.pos1.z +1;
@@ -188,8 +241,22 @@ var WorldEdit = {
 			WorldEdit.pos2.z = WorldEdit.sp2.z;
 			WorldEdit.pos1.z = WorldEdit.sp1.z;
 		}	
-	}
+	},
 	
+	getMessageSize:function(count, type){
+		if(!type)type=1;
+		var a = count;
+		a = a%100;
+		if(a<10 || a > 20){
+			a = a%10;
+			if(a==1)
+				return Translation.translate(type==1?"%count% block changed.":"%count% block.").replace("%count%", a);
+			else
+				return Translation.translate(type==1?"%count% blocks changed.":"%count% blocks.").replace("%count%", a);
+		}else
+			return Translation.translate(type==1?"%count% blocks changed.":"%count% blocks.").replace("%count%", a);
+		
+	}
 }
 
 function getWand(){
@@ -209,7 +276,7 @@ function getGetIdWand(){
 var Commands = {
 "//set":{
 	name:"//set",
-	description:Translation.translate("Set all blocks inside the selection region to a specified block."),
+	description:"Set all blocks inside the selection region to a specified block.",
 	args:"<block>",
 	func:function(args){
 		if(!args[0])
@@ -233,21 +300,12 @@ var Commands = {
 		WorldEdit.undo.push(undo);
 		
 		var a = WorldEdit.getSizeArea();
-		a = a%100;
-		if(a<10 || a > 20){
-			a = a%10;
-			if(a==1)
-				sizeArea = Translation.translate("%count% block changed.").replace("%count%", a);
-			else
-				sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		}else
-			sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		Game.message(sizeArea);
+		Game.message(WorldEdit.getMessageSize(a));
 	}
 },
 "//box":{
 	name:"//box",
-	description:Translation.translate("Build walls, floor, and ceiling."),
+	description:"Build walls, floor, and ceiling.",
 	args:"<block>",
 	func:function(args){
 		if(!args[0])
@@ -274,22 +332,12 @@ var Commands = {
 		}
 		WorldEdit.undo.push(undo);
 		
-		var a = count;
-		a = a%100;
-		if(a<10 || a > 20){
-			a = a%10;
-			if(a==1)
-				sizeArea = Translation.translate("%count% block changed.").replace("%count%", a);
-			else
-				sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		}else
-			sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		Game.message(sizeArea);
+		Game.message(WorldEdit.getMessageSize(count));
 	}
 },
 "//wall":{
 	name:"//wall",
-	description:Translation.translate("Build the walls of the region (not including ceiling and floor)."),
+	description:"Build the walls of the region (not including ceiling and floor).",
 	args:"<block>",
 	func:function(args){
 		if(!args[0])
@@ -316,22 +364,12 @@ var Commands = {
 		}
 		WorldEdit.undo.push(undo);
 		
-		var a = count;
-		a = a%100;
-		if(a<10 || a > 20){
-			a = a%10;
-			if(a==1)
-				sizeArea = Translation.translate("%count% block changed.").replace("%count%", a);
-			else
-				sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		}else
-			sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		Game.message(sizeArea);
+		Game.message(WorldEdit.getMessageSize(count));
 	}
 },
 "//replace":{
 	name:"//replace",
-	description:Translation.translate("Replace all blocks of the specified block(s) with another block inside the region."),
+	description:"Replace all blocks of the specified block(s) with another block inside the region.",
 	args:"[from_block] <to_block>",
 	func:function(args){
 		if(!args[0])
@@ -373,23 +411,13 @@ var Commands = {
 		}
 		WorldEdit.undo.push(undo);
 		
-		var a = count;
-		a = a%100;
-		if(a<10 || a > 20){
-			a = a%10;
-			if(a==1)
-				sizeArea = Translation.translate("%count% block changed.").replace("%count%", a);
-			else
-				sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		}else
-			sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		Game.message(sizeArea);
+		Game.message(WorldEdit.getMessageSize(count));
 		
 	}
 },
 "//help":{
 	name:"//help",
-	description:Translation.translate("Help."),
+	description:"Help.",
 	args:"[page]",
 	func:function(args){
 		var page = args[0]?parseInt(args[0]):1;
@@ -403,7 +431,7 @@ var Commands = {
 			message+= cmd.name+" ";
 			if(cmd.args != null)
 				message+= cmd.args+" ";
-			message+= "- "+cmd.description+"\n";
+			message+= "- "+Translation.translate(cmd.description)+"\n";
 		}
 		
 		Game.message(Translation.translate("===Help [Page %page%]===\n%cmd%===Help [Page %page%]===").replace(/(%page)/g, page).replace("%cmd%", message));
@@ -411,7 +439,7 @@ var Commands = {
 },
 "//?":{
 	name:"//?",
-	description:Translation.translate("Help."),
+	description:"Help.",
 	args:"[page]",
 	func:function(args){
 		Commands["//help"].func(args);
@@ -419,7 +447,7 @@ var Commands = {
 },
 "//r":{
 	name:"//r",
-	description:Translation.translate("Work with the region."),
+	description:"Work with the region.",
 	args:"<type> [args]",
 	func:function(args){
 		switch(args[0]){
@@ -427,9 +455,9 @@ var Commands = {
 			case "?":
 			case undefined:
 				var list = [
-					["help", "<page>", Translation.translate("Commands for working with the region")],
-					["up", "<count>", Translation.translate("Raise the selected region by the specified number of blocks")],
-					["down", "<count>", Translation.translate("Lower the selected region by the specified number of blocks")],
+					["help", "<page>", "Commands for working with the region"],
+					["up", "<count>", "Raise the selected region by the specified number of blocks"],
+					["down", "<count>", "Lower the selected region by the specified number of blocks"],
 					["pos1", "[<x> <y> <z>]", Commands["//pos1"].description],
 					["pos2", "[<x> <y> <z>]", Commands["//pos2"].description],
 				];
@@ -445,7 +473,7 @@ var Commands = {
 					message+= "//region "+cmd[0]+" ";
 					if(cmd[1] != null)
 						message+= cmd[1]+" ";
-					message+= "- "+cmd[2]+"\n";
+					message+= "- "+Translation.translate(cmd[2])+"\n";
 				}
 				
 				Game.message(Translation.translate("===Help [Page %page%]===\n%cmd%===Help [Page %page%]===").replace(/(%page)/g, page).replace("%cmd%", message));
@@ -519,7 +547,7 @@ var Commands = {
 },
 "//reg":{
 	name:"//reg",
-	description:Translation.translate("Work with the region."),
+	description:"Work with the region.",
 	args:"<type> [args]",
 	func:function(args){
 		Commands["//r"].func(args);
@@ -527,7 +555,7 @@ var Commands = {
 },
 "//region":{
 	name:"//region",
-	description:Translation.translate("Work with the region."),
+	description:"Work with the region.",
 	args:"<type> [args]",
 	func:function(args){
 		Commands["//r"].func(args);
@@ -535,108 +563,59 @@ var Commands = {
 },
 "//pos1":{
 	name:"//pos1",
-	description:Translation.translate("Set selection position #1 to the block above the one that you are standing on."),
+	description:"Set selection position #1 to the block above the one that you are standing on.",
 	args:"[<x> <y> <z>]",
 	func:function(args){
 		if(!args[0]){
 			var coords = Player.getPosition();
-			WorldEdit.selectPosition(coords,null);
-			var sizeArea = Translation.translate("%count% block.").replace("%count%", 1);
-			if(WorldEdit.getValidPosition()){
-				var a = WorldEdit.getSizeArea();
-				a = a%100;
-				if(a<10 || a > 20){
-					a = a%10;
-					if(a==1)
-						sizeArea = Translation.translate("%count% block.").replace("%count%", a);
-					else
-						sizeArea = Translation.translate("%count% blocks.").replace("%count%", a);
-				}else
-					sizeArea = Translation.translate("%count% blocks.").replace("%count%", a);
-				
-			}
+			coords.x = Math.round(coords.x);
+			coords.y = Math.round(coords.y);
+			coords.z = Math.round(coords.z);
+			WorldEdit.selectPosition(coords,null);			
 			Game.message(Translation.translate("The first position is set to %x%,%y%,%z%.").replace("%x%",coords.x).replace("%y%",coords.y).replace("%z%",coords.z));
-			Game.message("The selected region is %sizeArea%".replace("%sizeArea%", sizeArea));
+			Game.message(Translation.translate("The selected region is %sizeArea%").replace("%sizeArea%", WorldEdit.getMessageSize(WorldEdit.getValidPosition()?WorldEdit.getSizeArea():1,0)));
 		}else{
 			if(!args[1] || !args[2]){
 				return Game.message(Translation.translate("Don't valid command."));
 			}else{
-				WorldEdit.selectPosition({x:args[0],y:args[1],z:args[2]},null);
-				var sizeArea = Translation.translate("%count% block.").replace("%count%", 1);
-				if(WorldEdit.getValidPosition()){
-					var a = WorldEdit.getSizeArea();
-					a = a%100;
-					if(a<10 || a > 20){
-						a = a%10;
-						if(a==1)
-							sizeArea = Translation.translate("%count% block.").replace("%count%", a);
-						else
-							sizeArea = Translation.translate("%count% blocks.").replace("%count%", a);
-					}else
-						sizeArea = Translation.translate("%count% blocks.").replace("%count%", a);
-					
-				}
+				WorldEdit.selectPosition({x:Math.round(args[0]),y:Math.round(args[1]),z:Math.round(args[2])},null);
 				Game.message(Translation.translate("The first position is set to %x%,%y%,%z%.").replace("%x%",args[0]).replace("%y%",args[1]).replace("%z%",args[2]));
-				Game.message("The selected region is %sizeArea%".replace("%sizeArea%", sizeArea));
+				Game.message(Translation.translate("The selected region is %sizeArea%").replace("%sizeArea%", WorldEdit.getMessageSize(WorldEdit.getValidPosition()?WorldEdit.getSizeArea():1,0)));
 			}
 		}
 	}
 },
 "//pos2":{
 	name:"//pos2",
-	description:Translation.translate("Set selection position #2 to the block above the one that you are standing on."),
+	description:"Set selection position #2 to the block above the one that you are standing on.",
 	args:"[<x> <y> <z>]",
 	func:function(args){
 		if(!args[0]){
 			var coords = Player.getPosition();
+			coords.x = Math.round(coords.x);
+			coords.y = Math.round(coords.y);
+			coords.z = Math.round(coords.z);
 			WorldEdit.selectPosition(null, coords);
-			var sizeArea = Translation.translate("%count% block.").replace("%count%", 1);
-			if(WorldEdit.getValidPosition()){
-				var a = WorldEdit.getSizeArea();
-				a = a%100;
-				if(a<10 || a > 20){
-					a = a%10;
-					if(a==1)
-						sizeArea = Translation.translate("%count% block.").replace("%count%", a);
-					else
-						sizeArea = Translation.translate("%count% blocks.").replace("%count%", a);
-				}else
-					sizeArea = Translation.translate("%count% blocks.").replace("%count%", a);
-				
-			}
 			Game.message(Translation.translate("The second position is set to %x%,%y%,%z%.").replace("%x%",coords.x).replace("%y%",coords.y).replace("%z%",coords.z));
-			Game.message("The selected region is %sizeArea%".replace("%sizeArea%", sizeArea));
+			Game.message(Translation.translate("The selected region is %sizeArea%").replace("%sizeArea%", WorldEdit.getMessageSize(WorldEdit.getValidPosition()?WorldEdit.getSizeArea():1,0)));
 		}else{
 			if(!args[1] || !args[2]){
 				return Game.message(Translation.translate("Don't valid command."));
 			}else{
-				WorldEdit.selectPosition(null,{x:args[0],y:args[1],z:args[2]});
-				var sizeArea = Translation.translate("%count% block.").replace("%count%", 1);
-				if(WorldEdit.getValidPosition()){
-					var a = WorldEdit.getSizeArea();
-					a = a%100;
-					if(a<10 || a > 20){
-						a = a%10;
-						if(a==1)
-							sizeArea = Translation.translate("%count% block.").replace("%count%", a);
-						else
-							sizeArea = Translation.translate("%count% blocks.").replace("%count%", a);
-					}else
-						sizeArea = Translation.translate("%count% blocks.").replace("%count%", a);
-					
-				}
+				WorldEdit.selectPosition(null,{x:Math.round(args[0]),y:Math.round(args[1]),z:Math.round(args[2])});
 				Game.message(Translation.translate("The second position is set to %x%,%y%,%z%.").replace("%x%",args[0]).replace("%y%",args[1]).replace("%z%",args[2]));
-				Game.message("The selected region is %sizeArea%".replace("%sizeArea%", sizeArea));
+				Game.message(Translation.translate("The selected region is %sizeArea%").replace("%sizeArea%", WorldEdit.getMessageSize(WorldEdit.getValidPosition()?WorldEdit.getSizeArea():1,0)));
 			}
 		}
 	}
 },
 "//undo":{
 	name:"//undo",
-	description:Translation.translate("Undo your last action."),
+	description:"Undo your last action.",
 	args:"",
 	func:function(){
-		var undo = WorldEdit.undo[WorldEdit.undo.length];
+		if(WorldEdit.undo.length == 0)return;
+		var undo = WorldEdit.undo[WorldEdit.undo.length-1];
 		WorldEdit.redo = [];
 		var count = 0;
 		for(var i = 0; i < undo.length; i++){
@@ -644,54 +623,151 @@ var Commands = {
 			count++;
 			World.setBlock(undo[i][0], undo[i][1], undo[i][2], undo[i][3], undo[i][4]);
 		}
-		
-		var a = count;
-		a = a%100;
-		if(a<10 || a > 20){
-			a = a%10;
-			if(a==1)
-				sizeArea = Translation.translate("%count% block changed.").replace("%count%", a);
-			else
-				sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		}else
-			sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		Game.message(sizeArea);
+		WorldEdit.undo.pop();
+		Game.message(WorldEdit.getMessageSize(count));
 	},
 },
 "//redo":{
 	name:"//redo",
-	description:Translation.translate("Redo your last (undone) action. This command replays back history and does not repeat the command."),
+	description:"Redo your last (undone) action. This command replays back history and does not repeat the command.",
 	args:"",
 	func:function(){
 		var redo = WorldEdit.redo;
+		if(redo.length == 0)return;
 		var count = 0;
 		for(var i = 0; i < redo.length; i++){
 			count++;
 			World.setBlock(redo[i][0], redo[i][1], redo[i][2], redo[i][3], redo[i][4]);
 		}
 		
-		var a = count;
-		a = a%100;
-		if(a<10 || a > 20){
-			a = a%10;
-			if(a==1)
-				sizeArea = Translation.translate("%count% block changed.").replace("%count%", a);
-			else
-				sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		}else
-			sizeArea = Translation.translate("%count% blocks changed.").replace("%count%", a);
-		Game.message(sizeArea);
+		Game.message(WorldEdit.getMessageSize(count));
+	},
+},
+"//clearhistory":{
+	name:"//clearhistory",
+	description:"Clear your history.",
+	args:"",
+	func:function(){
+		WorldEdit.undo = [];
+		WorldEdit.redo = [];
+		Game.message(Translation.translate("History cleared."));
 	},
 },
 "//wand":{
 	name:"//wand",
-	description:Translation.translate("Gives you the \"EditWand\" (by default, a wooden axe)."),
+	description:"Gives you the \"EditWand\" (by default, a wooden axe).",
 	args:"",
 	func:function(){
-		Player.addItemInventory(getWand(), 1);
+		Player.addItemToInventory(getWand(), 1);
 	},
+},
+"//copy":{
+	name:"//copy",
+	description:"Copy the selected area.",
+	args:"[-a]",
+	func:function(args){
+		var air = args.indexOf("-a")!=-1?true:false;
+		WorldEdit.copy = [];
+		var count = 0;
+		for(var x = WorldEdit.pos1.x; x <= WorldEdit.pos2.x; x++){
+			for(var y = WorldEdit.pos1.y; y <= WorldEdit.pos2.y; y++){
+				for(var z = WorldEdit.pos1.z; z <= WorldEdit.pos2.z; z++){
+					var block = World.getBlock(x, y, z);
+					var coord = Player.getPosition();
+					coord.x = Math.round(coord.x);
+					coord.y = Math.round(coord.y);
+					coord.z = Math.round(coord.z);
+					if(block.id == 0 && air == false)continue;
+					WorldEdit.copy.push([coord.x - x, coord.y - y, coord.z - z,block]);
+					count++;
+				}	
+			}
+		}
+		
+		Game.message(Translation.translate("Region copied."));
+	},
+},
+"//cut":{
+	name:"//cut",
+	description:"Cut the selected area.",
+	args:"[-a]",
+	func:function(args){
+		var air = args.indexOf("-a")!=-1?true:false;
+		WorldEdit.copy = [];
+		var count = 0;
+		for(var x = WorldEdit.pos1.x; x <= WorldEdit.pos2.x; x++){
+			for(var y = WorldEdit.pos1.y; y <= WorldEdit.pos2.y; y++){
+				for(var z = WorldEdit.pos1.z; z <= WorldEdit.pos2.z; z++){
+					var block = World.getBlock(x, y, z);
+					var coord = Player.getPosition();
+					coord.x = Math.round(coord.x);
+					coord.y = Math.round(coord.y);
+					coord.z = Math.round(coord.z);
+					if(block.id == 0 && air == false)continue;
+					WorldEdit.copy.push([coord.x - x, coord.y - y, coord.z - z,block]);
+					World.setBlock(x,y,z,0,0);
+					count++;
+				}	
+			}
+		}
+		
+		Game.message(Translation.translate("Region cut."));
+	},
+},
+"//paste":{
+	name:"//paste",
+	description:"Paste the copied area.",
+	args:"",
+	func:function(args){
+		if(WorldEdit.copy.length==0)return;
+		var copy = WorldEdit.copy;
+		var count = 0;
+		
+		for(var i = 0; i < copy.length; i++){
+			var coord = Player.getPosition();
+			coord.x = Math.round(coord.x);
+			coord.y = Math.round(coord.y);
+			coord.z = Math.round(coord.z);
+			World.setBlock(	coord.x - copy[i][0],
+							coord.y - copy[i][1],
+							coord.z - copy[i][2], copy[i][3].id, copy[i][3].data);
+			count++;
+		}
+		
+		Game.message(WorldEdit.getMessageSize(count));
+	}
+},
+"//size":{
+	name:"//size",
+	description:"Get size area.",
+	args:"",
+	func:function(){
+		Game.message(WorldEdit.getMessageSize(WorldEdit.getSizeArea(), 0));
+	}
+},
+"//toggleeditwand":{
+	name:"//toggleeditwand",
+	description:"Toggles the edit wand selection mode, allowing you to use the edit wand item normally.",
+	args:"",
+	func:function(){
+		WorldEdit.wand = !WorldEdit.wand;
+		Game.message(Translation.translate("Mode wand edit switched."));
+	}
+},
+"//desel":{
+	name:"//desel",
+	description:"Deselects the current selection.",
+	args:"",
+	func:function(){
+		WorldEdit.pos1 = {x:Infinity,y:Infinity,z:Infinity};
+		WorldEdit.pos2 = {x:Infinity,y:Infinity,z:Infinity};
+	
+		WorldEdit.sp1 = {x:Infinity,y:Infinity,z:Infinity};
+		WorldEdit.sp2 = {x:Infinity,y:Infinity,z:Infinity};
+		
+		Game.message(Translation.translate("The current selection is canceled."));
+	}
 }
-
 };
 
 Callback.addCallback("NativeCommand", function(command){
@@ -706,16 +782,21 @@ Callback.addCallback("ItemUse",function(coords, item, block){
 	if(item.id == getGetIdWand()){
 		Game.message(Translation.translate("Block ID %id%:%data%.").replace("%id%",block.id).replace("%data%",block.data));
 	}
-	if(item.id == getWand()){
+	if(item.id == getWand() && WorldEdit.wand == true){
 		Commands["//pos1"].func([coords.x, coords.y, coords.z]);
 	}
 });
 
 Callback.addCallback("DestroyBlockStart", function (coords, block, player) {
-	if(Player.getCarriedItem().id == getWand()){
+	if(Player.getCarriedItem().id == getWand() && WorldEdit.wand == true){
 		Commands["//pos2"].func([coords.x, coords.y, coords.z]);
 		Game.prevent();
 	}
+});
+
+Callback.addCallback("LevelLeft", function(){
+	WorldEdit.undo = [];
+	WorldEdit.redo = [];	
 });
 
 

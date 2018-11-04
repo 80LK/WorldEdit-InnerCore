@@ -86,6 +86,14 @@ Translation.addTranslation("Redo your last (undone) action. This command replays
 	ru:"Повторите последнее(отмененное) действие.",
 	en:"Redo your last (undone) action. This command replays back history and does not repeat the command.",
 });
+Translation.addTranslation("Clear your history.", {
+	ru:"Очистить истоию.",
+	en:"Clear your history.",
+});
+Translation.addTranslation("History cleared.", {
+	ru:"История очищена.",
+	en:"History cleared.",
+});
 //wand
 Translation.addTranslation("Gives you the \"EditWand\" (by default, a wooden axe).", {
 	ru:"Дает вам \"EditWand\" (по умолчанию - деревянный топор).",
@@ -115,4 +123,43 @@ Translation.addTranslation("The region is raised to %area%", {
 Translation.addTranslation("The region is omitted in %area%", {
 	ru:"Регион опущен на %area%",
 	en:"The region is omitted in %area%",
+});
+//Copy/Paste
+Translation.addTranslation("Copy the selected area.", {
+	ru:"Скопировать выделенную область.",
+	en:"Copy the selected area.",
+});
+Translation.addTranslation("Region copied.", {
+	ru:"Регион скопрован.",
+	en:"Region copied.",
+});
+Translation.addTranslation("Paste the copied area.", {
+	ru:"Вставить скопированную область.",
+	en:"Paste the copied area.",
+});
+Translation.addTranslation("Cut the selected area.", {
+	ru:"Скопировать выделенную область.",
+	en:"Cut the selected area.",
+});
+Translation.addTranslation("Region cut.", {
+	ru:"Регион вырезан.",
+	en:"Region cut.",
+});
+//toggleeditwand
+Translation.addTranslation("Toggles the edit wand selection mode, allowing you to use the edit wand item normally.", {
+	ru:"Переключает режим выбора палочки редактирования, позволяя использовать элемент палочки редактирования в обычном режиме.",
+	en:"Toggles the edit wand selection mode, allowing you to use the edit wand item normally.",
+});
+Translation.addTranslation("Mode wand edit switched.", {
+	ru:"Режим палочки редактирования переключен.",
+	en:"Mode wand edit switched.",
+});
+//desel
+Translation.addTranslation("Deselects the current selection.", {
+	ru:"Отменяет текущее выделение.",
+	en:"Deselects the current selection.",
+});
+Translation.addTranslation("The current selection is canceled.", {
+	ru:"Текущее выделение отмененно.",
+	en:"The current selection is canceled.",
 });
